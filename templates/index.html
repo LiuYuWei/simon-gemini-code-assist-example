@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gemini 聊天室</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
@@ -16,7 +17,8 @@
         </div>
         <div class="input-area">
             <input type="text" id="userInput" placeholder="輸入您的訊息...">
-            <button id="sendButton">傳送</button>
+            <button id="sendButton" class="chat-button">傳送</button>
+            <button id="resetButton" class="chat-button reset-button">重置</button>
         </div>
     </div>
 

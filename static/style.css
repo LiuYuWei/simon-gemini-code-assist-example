@@ -35,6 +35,7 @@ body {
     max-width: 75%;
     line-height: 1.5;
     word-wrap: break-word;
+    box-sizing: border-box; /* 確保 padding 和 border 包含在 max-width 內 */
 }
 
 .user-message {
@@ -79,17 +80,62 @@ body {
     font-size: 16px;
 }
 
-.input-area button {
+.input-area .chat-button { /* 通用按鈕樣式 */
     padding: 12px 20px;
     background-color: #007bff;
     color: white;
     border: none;
     border-radius: 20px;
-    cursor: pointer;
     font-size: 16px;
     transition: background-color 0.2s;
+    cursor: pointer;
+    margin-left: 8px; /* 按鈕之間的間隔 */
 }
 
-.input-area button:hover {
+.input-area .chat-button:first-of-type { /* 第一個按鈕 (傳送) 不需要左邊距 */
+    margin-left: 0;
+}
+
+.input-area .chat-button:hover {
     background-color: #0056b3;
+}
+
+.input-area .reset-button { /* 重置按鈕的特定樣式 */
+    background-color: #6c757d; /* 不同的背景色，例如灰色 */
+}
+
+.input-area .reset-button:hover {
+    background-color: #5a6268; /* 滑鼠懸停時的深灰色 */
+}
+
+
+/* 針對 Markdown 產生的 <pre> 標籤 (通常用於程式碼區塊) */
+.message pre {
+    box-sizing: border-box;   /* 確保 padding 和 border 包含在 width/max-width 內 */
+    max-width: 100%;         /* 確保 pre 標籤不超過其父元素 .message 的寬度 */
+    white-space: pre-wrap;   /* 允許在 <pre> 標籤內部換行，同時保留空白符 */
+    word-wrap: break-word;   /* 確保 <pre> 內的長單字也能換行 */
+    overflow-x: auto;        /* 如果內容寬度還是超出，則顯示水平捲軸 */
+    background-color: #f5f5f5; /* 為程式碼區塊加上背景色，使其更易讀 */
+    padding: 10px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace; /* 推薦使用等寬字體 */
+}
+
+/* 針對 Markdown 產生的行內 <code> 標籤 */
+.message code {
+    background-color: #f0f0f0; /* 輕微的背景色 */
+    padding: 0.2em 0.4em;
+    margin: 0;
+    font-size: 85%;
+    border-radius: 3px;
+    font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace; /* 推薦使用等寬字體 */
+}
+
+/* 確保 Markdown 中的圖片不會超出容器 */
+.message img {
+    max-width: 100%; /* 圖片最大寬度為其容器的100% */
+    height: auto;    /* 高度自動調整以保持比例 */
+    display: block;  /* 可選，讓圖片獨佔一行，避免文字環繞問題 */
 }

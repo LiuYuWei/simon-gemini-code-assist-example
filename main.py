@@ -1,35 +1,30 @@
 import os
-import google.generativeai as genai
+from dotenv import load_dotenv
+from google import genai
+from google.genai import types
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
-from dotenv import load_dotenv
-from typing import List, Dict
+from typing import List
 
-# 從 .env 檔案載入環境變數
+# 載入 .env
 load_dotenv()
-
-# 設定 Gemini API
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 if not GOOGLE_API_KEY:
-    raise ValueError("環境變數中找不到 GOOGLE_API_KEY。請在 .env 檔案中設定它。")
+    raise ValueError("環境變數中找不到 GOOGLE_API_KEY，請於 .env 中設定。")
 
-genai.configure(api_key=GOOGLE_API_KEY)
-
-# 使用 gemini-1.5-flash-latest 模型。
-# 您提到 "gemini-2.0-flash"，這是透過 google-generativeai SDK 可用的最接近的 Flash 模型。
-MODEL_NAME = "gemini-1.5-flash-latest"
+# 建立 Google Gen AI 客戶端
+client = genai.Client(api_key=GOOGLE_API_KEY)
 
 app = FastAPI()
 
-# 掛載靜態檔案 (CSS, JS)
+# 掛載靜態檔案與模板
 app.mount("/static", StaticFiles(directory="static"), name="static")
-
-# 設定 Jinja2 樣板
 templates = Jinja2Templates(directory="templates")
 
+# 定義請求與訊息模型
 class ChatMessagePart(BaseModel):
     text: str
 
@@ -48,18 +43,27 @@ async def get_chat_page(request: Request):
 @app.post("/chat")
 async def chat_endpoint(chat_request: ChatRequest):
     try:
-        model = genai.GenerativeModel(MODEL_NAME)
-        
-        formatted_history = [{"role": msg.role, "parts": [{"text": part.text for part in msg.parts}]} for msg in chat_request.history]
+        # 將歷史訊息轉成 types.Content 清單
+        history_contents: List[types.Content] = []
+        for msg in chat_request.history:
+            parts = [types.Part.from_text(text=part.text) for part in msg.parts]
+            history_contents.append(types.Content(role=msg.role, parts=parts))
 
-        chat_session = model.start_chat(history=formatted_history)
-        response = await chat_session.send_message_async(chat_request.prompt)
-        
-        llm_reply = response.text if hasattr(response, 'text') and response.text else "抱歉，我無法產生回覆。"
+        # 建立對話並送出新訊息
+        chat = client.aio.chats.create(
+            model="gemini-2.0-flash-001",
+            history=history_contents
+        )
+        # 非同步送出訊息
+        response = await chat.send_message(chat_request.prompt)
+
+        llm_reply = response.text or "抱歉，我無法產生回覆。"
         return JSONResponse(content={"reply": llm_reply})
+
     except Exception as e:
+        # 錯誤處理
         print(f"Gemini API 呼叫錯誤: {e}")
-        raise HTTPException(status_code=500, detail=f"與 LLM 通訊時發生錯誤: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"與 LLM 通訊時發生錯誤: {e}")
 
 if __name__ == "__main__":
     import uvicorn
